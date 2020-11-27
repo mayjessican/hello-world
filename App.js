@@ -1,7 +1,6 @@
 // Import dependencies
 import React, { Component } from "react";
 // Import the screens we want to navigate
-import StartScreen from "./components/Start";
 import Chat from "./components/Chat";
 // Import React Native Gesture Handler
 import "react-native-gesture-handler";
@@ -19,7 +18,7 @@ export default class App extends Component {
       <NavigationContainer>
         <Stack.Navigator
           //First screen to load upon launching the app
-          initialRouteName="StartScreen"
+          initialRouteName="Start"
         >
           <Stack.Screen name="Home" component={Start} />
           <Stack.Screen name="Chat" component={Chat} />

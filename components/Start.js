@@ -44,7 +44,7 @@ export default class SplashScreen extends React.Component {
             // Update username based on user's input
             onChangeText={(userName) => this.setState({ userName })}
             // Display user's input as it's being typed
-            value={this.state.text}
+            value={this.state.userName}
             // Display to user what to input
             placeholder="Your Name"
           />
@@ -103,6 +103,15 @@ export default class SplashScreen extends React.Component {
                 { backgroundColor: backgroundColorOptions[3] },
               ]}
             />
+            <TouchableOpacity
+              accessible={true}
+              accessibilityLabel="More options"
+              accessibilityHint="Lets you choose to send an image or your geolocation."
+              accessibilityRole="button"
+              onPress={this._onPress}
+            >
+              <View style={styles.button}>...</View>
+            </TouchableOpacity>
           </View>
 
           {/* Start Chatting button*/}
@@ -110,7 +119,7 @@ export default class SplashScreen extends React.Component {
             <TouchableOpacity
               // Navigates to Chat view when the user taps on it
               onPress={() =>
-                this.props.navigation.navigate("Chat", {
+                this.props.navigation.navigate(navigate('Screen2', { name: this.stateuserName }), {
                   // Updates the username as per user's input
                   userName: this.state.userName,
                   // Updates the background color as per user's choice (circle)
