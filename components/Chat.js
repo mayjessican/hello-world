@@ -1,12 +1,6 @@
 // Import dependencies
 import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Platform,
-  KeyboardAvoidingView,
-} from "react-native";
+import { View, StyleSheet, Platform, KeyboardAvoidingView } from "react-native";
 // Import gifted chat
 import { GiftedChat, Bubble } from "react-native-gifted-chat";
 
@@ -18,12 +12,15 @@ export default class Chat extends React.Component {
     };
   }
 
+  //Test app with static messages
   componentDidMount() {
+    const { userName } = this.props.route.params;
     this.setState({
+      // Messages must follow the format from gifted chat library
       messages: [
         {
           _id: 1,
-          text: "Hello developer",
+          text: `Hello ${userName}`,
           createdAt: new Date(),
           user: {
             _id: 2,
@@ -33,26 +30,28 @@ export default class Chat extends React.Component {
         },
         {
           _id: 2,
-          text: "This is a system message",
-          createdAt: new Date(),
-          system: true,
-        },
-        {
-          _id: 3,
-          text: this.props.navigation.state.params.userName + ' has joined the chat.',
+          text: this.props.route.params.userName + " has entered the chat.",
           createdAt: new Date(),
           system: true,
         },
       ],
     });
+    // Display username on navbar
+    this.props.navigation.setOptions({
+      title: `Chat room for user: ${userName}`,
+    });
   }
 
+  // Function to send a message
   onSend(messages = []) {
+    // previousState refers to the component's state at the time the change is applied
     this.setState((previousState) => ({
+      // Appends the new messages to messages object or state
       messages: GiftedChat.append(previousState.messages, messages),
     }));
   }
 
+  // Changes the color of the right side of the chat bubble
   renderBubble(props) {
     return (
       <Bubble
@@ -71,13 +70,12 @@ export default class Chat extends React.Component {
     let { userName, backgroundColor } = this.props.route.params;
 
     // Set default username in case the user didn't enter one
-    if (!userName || userName === "") userName = "User";
-
-    // Display username on the navbar in place of the title
-    this.props.navigation.setOptions({ title: userName });
+    if (!userName || userName === "") {
+      userName = "User";
+    }
 
     return (
-      // Set background to the color chosen by the user on StartScreen
+      //Render chat layout
       <View
         style={[styles.chatBackground, { backgroundColor: backgroundColor }]}
       >
@@ -89,8 +87,7 @@ export default class Chat extends React.Component {
             _id: 1,
           }}
         />
-        {/* Display placeholder text until chat is properly implemented */}
-        <Text style={{ color: "#FFFFFF" }}>This chat is your chat screen.</Text>
+        {/* If the device OS is Android, adjust height when the keyboard pops up */}
         {Platform.OS === "android" ? (
           <KeyboardAvoidingView behavior="height" />
         ) : null}
@@ -103,7 +100,5 @@ export default class Chat extends React.Component {
 const styles = StyleSheet.create({
   chatBackground: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
   },
 });
