@@ -5,12 +5,20 @@ import Chat from "./components/Chat";
 // Import React Native Gesture Handler
 import "react-native-gesture-handler";
 // Import React Navigation
+import { createAppContainer } from "@react-navigation/native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import Start from "./components/Start";
 
 // Create the navigator
 const Stack = createStackNavigator();
+// ({
+//   Start: { screen: Start },
+//   Chat: { screen: Chat }
+// });
+// const navigatorContainer = createAppContainer(navigator);
+// // Export it as the root component
+// export default navigatorContainer;
 
 export default class App extends Component {
   render() {
