@@ -9,14 +9,13 @@ import {
 } from "react-native";
 // Import gifted chat
 import { GiftedChat, Bubble } from "react-native-gifted-chat";
-
 // Import Firebase/Firestore
 const firebase = require("firebase");
 require("firebase/firestore");
 
-export default class Chat extends React.Component {
-  constructor(props) {
-    super(props);
+export default class Chat extends Component {
+  constructor() {
+    super();
     // Connect to firestore
     if (!firebase.apps.length) {
       firebase.initializeApp({
@@ -32,7 +31,9 @@ export default class Chat extends React.Component {
     }
     // Reference messages collection from firestore
     this.referenceMessages = firebase.firestore().collection("messages");
+    // Initialises state for user
     this.state = {
+      systemMessages: [],
       messages: [],
       user: {
         _id: "",
@@ -51,41 +52,42 @@ export default class Chat extends React.Component {
         await firebase.auth().signInAnonymously();
       }
       this.setState({
-        // Messages must follow the format from gifted chat library
-        messages: [
-          {
-            _id: 1,
-            text: `Hello ${userName}`,
-            createdAt: new Date(),
-            user: {
-              _id: 2,
-              name: "React Native",
-              avatar: "https://placeimg.com/140/140/any",
-            },
-          },
-          {
-            _id: 2,
-            text: this.props.route.params.userName + " has entered the chat.",
-            createdAt: new Date(),
-            system: true,
-          },
-        ],
+        user: {
+          _id: user.uid,
+          name: this.props.route.params.userName,
+          loggedInText: "Hello there",
+        },
       });
-      //update user state with currently active user data
-      this.setState({
-        uid: user.uid,
-        loggedInText: "Hello There",
-      });
-      // create a reference to the active user's documents (messages)
-      this.referenceMessageUser = firebase.firestore().collection("messages");
-      // listen for collection changes for current user
-      this.unsubscribeMessageUser = this.referenceMessageUser.onSnapshot(
+
+      // Listen for collection changes for current user
+      this.unsubscribe = this.referenceMessages.onSnapshot(
         this.onCollectionUpdate
       );
     });
     this.setState({
       // Messages must follow the format from gifted chat library
-      messages: [],
+      systemMessages: [
+        {
+          _id: 1,
+          text: `Hello ${userName}`,
+          createdAt: new Date(),
+          user: {
+            _id: 2,
+            name: "React Native",
+            avatar: "https://placeimg.com/140/140/any",
+          },
+        },
+        {
+          _id: 2,
+          text: this.props.route.params.userName + " has entered the chat.",
+          createdAt: new Date(),
+          system: true,
+        },
+      ],
+    });
+    // Display username on navbar
+    this.props.navigation.setOptions({
+      title: `Chat room for user: ${userName}`,
     });
   }
 
@@ -98,33 +100,50 @@ export default class Chat extends React.Component {
   // Function to send a message
   onSend(messages = []) {
     // previousState refers to the component's state at the time the change is applied
-    this.setState((previousState) => ({
-      // Appends the new messages to messages object or state
-      messages: GiftedChat.append(previousState.messages, messages),
-    }));
+    this.setState(
+      (previousState) => ({
+        // Appends the new messages to messages object or state
+        messages: GiftedChat.append(previousState.messages, messages),
+      }),
+      () => {
+        this.addMessage();
+      }
+    );
   }
 
   // Updates messages in state
   onCollectionUpdate = (querySnapshot) => {
-    const messages = [];
+    // when messages from firebase come, they override message we set from the beginning
+    const messagesFromFirebase = [];
     // Go through each document
     querySnapshot.forEach((doc) => {
       // Get the QueryDocumentSnapshot's data
       const data = doc.data();
-      messages.push({
-        _id: data._id,
-        text: data.text.toString(),
-        createdAt: data.createdAt,
-        user: data.user,
-      });
+      if (data._id) { // Make sure to push only message with valid _id
+        messagesFromFirebase.push({
+          _id: data._id,
+          text: data.text.toString(),
+          createdAt: data.createdAt.toDate(), // use toDate() to convert firebase time format to Javascript Date for consistency
+          user: data.user,
+        });
+      }
     });
+
+    // We need to combine the system message we set with messages from firebase
+    // this hack always adds these welcome messages to the actual (firebase) messages
+    // if not, firebase messages will override welcome messages
+    const messages = [
+      ...this.state.systemMessages,
+      ...messagesFromFirebase,
+    ];
+
     this.setState({
-      messages,
+      messages: messages.sort((a, b) => b.createdAt - a.createdAt), // Sort by date descending, to make sure messages are in order
     });
   };
 
   //Pushes messages to Firestore database
-  addMessages = () => {
+  addMessage = () => {
     const message = this.state.messages[0];
     this.referenceMessages.add({
       _id: message._id,
@@ -135,6 +154,8 @@ export default class Chat extends React.Component {
       sent: true,
     });
   };
+
+  // Do you understand everything? Yes I think so, I want to look it over again but you were very clear and I followed everything. Nice, still the button doesn't work well here
 
   // Changes the color of the right side of the chat bubble
   renderBubble(props) {
@@ -159,11 +180,6 @@ export default class Chat extends React.Component {
       userName = "User";
     }
 
-    // Display username on navbar
-    this.props.navigation.setOptions({
-      title: `Chat room for user: ${userName}`,
-    });
-
     return (
       //Render chat layout
       <View
@@ -173,9 +189,11 @@ export default class Chat extends React.Component {
           renderBubble={this.renderBubble.bind(this)}
           messages={this.state.messages}
           onSend={(messages) => this.onSend(messages)}
-          user={{
-            _id: 1,
-          }}
+          user={
+            // _id: 1,
+            //this.user,
+            this.state.user
+          }
         />
         {/* If the device OS is Android, adjust height when the keyboard pops up */}
         {Platform.OS === "android" ? (
@@ -191,4 +209,11 @@ const styles = StyleSheet.create({
   chatBackground: {
     flex: 1,
   },
+  //   userName: {
+  //   fontSize: 10,
+  //   color: "#fff",
+  //   alignSelf: "center",
+  //   opacity: 0.5,
+  //   marginTop: 25
+  // }
 });

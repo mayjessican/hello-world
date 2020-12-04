@@ -10,15 +10,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import Start from "./components/Start";
 
-// Create the navigator
 const Stack = createStackNavigator();
-// ({
-//   Start: { screen: Start },
-//   Chat: { screen: Chat }
-// });
-// const navigatorContainer = createAppContainer(navigator);
-// // Export it as the root component
-// export default navigatorContainer;
 
 export default class App extends Component {
   render() {
