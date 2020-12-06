@@ -123,22 +123,22 @@ export default class Chat extends Component {
         messagesFromFirebase.push({
           _id: data._id,
           text: data.text.toString(),
-          createdAt: data.createdAt.toDate(), // use toDate() to convert firebase time format to Javascript Date for consistency
+          // use toDate() to convert firebase time format to JS date for consistency
+          createdAt: data.createdAt.toDate(),
           user: data.user,
         });
       }
     });
 
-    // We need to combine the system message we set with messages from firebase
-    // this hack always adds these welcome messages to the actual (firebase) messages
-    // if not, firebase messages will override welcome messages
+    // Combine system message with messages from firebase (otherwise firebase will overide)
     const messages = [
       ...this.state.systemMessages,
       ...messagesFromFirebase,
     ];
 
+    // Sorts by descending date to make sure messages are in order
     this.setState({
-      messages: messages.sort((a, b) => b.createdAt - a.createdAt), // Sort by date descending, to make sure messages are in order
+      messages: messages.sort((a, b) => b.createdAt - a.createdAt),
     });
   };
 
@@ -155,9 +155,7 @@ export default class Chat extends Component {
     });
   };
 
-  // Do you understand everything? Yes I think so, I want to look it over again but you were very clear and I followed everything. Nice, still the button doesn't work well here
-
-  // Changes the color of the right side of the chat bubble
+    // Changes the color of the right side of the chat bubble
   renderBubble(props) {
     return (
       <Bubble
@@ -165,6 +163,12 @@ export default class Chat extends Component {
         wrapperStyle={{
           right: {
             backgroundColor: "#000",
+          },
+          left: {
+            backgroundColor: "white",
+          },
+          third: {
+            backgroundColor: "grey"
           },
         }}
       />
