@@ -189,6 +189,8 @@ export default class Chat extends Component {
     // Sorts by descending date to make sure messages are in order
     this.setState({
       messages: messages.sort((a, b) => b.createdAt - a.createdAt),
+    }, () => {
+      this.saveMessages();
     });
   };
 
