@@ -106,6 +106,7 @@ export default class Start extends React.Component {
                     backgroundColor: this.state.backgroundColor,
                   })
                 }
+                style={styles.buttonWrapper}
               >
                 {/* Text on the button */}
                 <Text style={styles.buttonText}>Start Chatting</Text>
@@ -198,10 +199,15 @@ const styles = StyleSheet.create({
     height: "18%",
     marginBottom: "5%",
   },
+  buttonWrapper: {
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   buttonText: {
     fontSize: 16,
     fontWeight: "700",
     color: "#FFFFFF",
-    marginTop: 16,
   },
 });

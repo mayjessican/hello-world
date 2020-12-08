@@ -1,14 +1,10 @@
 // Import dependencies
 import React, { Component } from "react";
-import {
-  View,
-  StyleSheet,
-  Platform,
-  Text,
-  KeyboardAvoidingView,
-} from "react-native";
+import { View, StyleSheet, Platform, KeyboardAvoidingView } from "react-native";
 // Import gifted chat
-import { GiftedChat, Bubble } from "react-native-gifted-chat";
+import { GiftedChat, Bubble, InputToolbar } from "react-native-gifted-chat";
+import NetInfo from "@react-native-community/netinfo";
+import AsyncStorage from "@react-native-community/async-storage";
 // Import Firebase/Firestore
 const firebase = require("firebase");
 require("firebase/firestore");
@@ -44,46 +40,98 @@ export default class Chat extends Component {
     };
   }
 
+  // Gets messages from asyncStorage
+  async getMessages() {
+    let messages = "";
+    try {
+      messages = (await AsyncStorage.getItem("messages")) || [];
+      this.setState({
+        messages: JSON.parse(messages),
+      });
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+
+  // Saves messages from asyncStorage
+  async saveMessages() {
+    try {
+      await AsyncStorage.setItem(
+        "messages",
+        JSON.stringify(this.state.messages)
+      );
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+
+  // Deletes messages from asyncStorage
+  async deleteMessages() {
+    try {
+      await AsyncStorage.removeItem("messages");
+      this.setState({
+        messages: [],
+      });
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+
   componentDidMount() {
     const { userName } = this.props.route.params;
-    // Authorisation using Firebase
-    this.authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
-      if (!user) {
-        await firebase.auth().signInAnonymously();
-      }
-      this.setState({
-        user: {
-          _id: user.uid,
-          name: this.props.route.params.userName,
-          loggedInText: "Hello there",
-        },
-      });
+    // Use NetInfo to check is user is on or offline
+    NetInfo.fetch().then((state) => {
+      if (state.isConnected) {
+        // Authorisation using Firebase
+        this.authUnsubscribe = firebase
+          .auth()
+          .onAuthStateChanged(async (user) => {
+            if (!user) {
+              try {
+                await firebase.auth().signInAnonymously();
+              } catch (error) {
+                console.log("Unable to sign in: " + error.message);
+              }
+            }
+            this.setState({
+              isConnected: true,
+              user: {
+                _id: user.uid,
+                name: this.props.route.params.userName,
+                loggedInText: "Hello there",
+              },
+              systemMessages: [
+                {
+                  _id: 1,
+                  text: `Hello ${userName}`,
+                  createdAt: new Date(),
+                  user: {
+                    _id: 2,
+                    name: "React Native",
+                    avatar: "https://placeimg.com/140/140/any",
+                  },
+                },
+                {
+                  _id: 2,
+                  text:
+                    this.props.route.params.userName + " has entered the chat.",
+                  createdAt: new Date(),
+                  system: true,
+                },
+              ],
+            });
 
-      // Listen for collection changes for current user
-      this.unsubscribe = this.referenceMessages.onSnapshot(
-        this.onCollectionUpdate
-      );
-    });
-    this.setState({
-      // Messages must follow the format from gifted chat library
-      systemMessages: [
-        {
-          _id: 1,
-          text: `Hello ${userName}`,
-          createdAt: new Date(),
-          user: {
-            _id: 2,
-            name: "React Native",
-            avatar: "https://placeimg.com/140/140/any",
-          },
-        },
-        {
-          _id: 2,
-          text: this.props.route.params.userName + " has entered the chat.",
-          createdAt: new Date(),
-          system: true,
-        },
-      ],
+            // Listen for collection changes for current user
+            this.unsubscribe = this.referenceMessages.onSnapshot(
+              this.onCollectionUpdate
+            );
+          });
+      } else {
+        this.setState({
+          isConnected: false,
+        });
+        this.getMessages();
+      }
     });
     // Display username on navbar
     this.props.navigation.setOptions({
@@ -97,6 +145,9 @@ export default class Chat extends Component {
     this.unsubscribe();
   }
 
+  // Disbales InputToolbar if user is offline, where do you want to render this? I'm not sure exactly where. Where the input should
+  
+
   // Function to send a message
   onSend(messages = []) {
     // previousState refers to the component's state at the time the change is applied
@@ -106,7 +157,8 @@ export default class Chat extends Component {
         messages: GiftedChat.append(previousState.messages, messages),
       }),
       () => {
-        this.addMessage();
+        //this.addMessage();
+        this.saveMessages();
       }
     );
   }
@@ -119,7 +171,8 @@ export default class Chat extends Component {
     querySnapshot.forEach((doc) => {
       // Get the QueryDocumentSnapshot's data
       const data = doc.data();
-      if (data._id) { // Make sure to push only message with valid _id
+      if (data._id) {
+        // Make sure to push only message with valid _id
         messagesFromFirebase.push({
           _id: data._id,
           text: data.text.toString(),
@@ -131,10 +184,7 @@ export default class Chat extends Component {
     });
 
     // Combine system message with messages from firebase (otherwise firebase will overide)
-    const messages = [
-      ...this.state.systemMessages,
-      ...messagesFromFirebase,
-    ];
+    const messages = [...this.state.systemMessages, ...messagesFromFirebase];
 
     // Sorts by descending date to make sure messages are in order
     this.setState({
@@ -155,7 +205,7 @@ export default class Chat extends Component {
     });
   };
 
-    // Changes the color of the right side of the chat bubble
+  // Changes the color of the right side of the chat bubble
   renderBubble(props) {
     return (
       <Bubble
@@ -166,9 +216,6 @@ export default class Chat extends Component {
           },
           left: {
             backgroundColor: "white",
-          },
-          third: {
-            backgroundColor: "grey"
           },
         }}
       />
@@ -193,11 +240,14 @@ export default class Chat extends Component {
           renderBubble={this.renderBubble.bind(this)}
           messages={this.state.messages}
           onSend={(messages) => this.onSend(messages)}
-          user={
-            // _id: 1,
-            //this.user,
-            this.state.user
-          }
+          user={this.state.user}
+          renderInputToolbar = {(props) => {
+            if (this.state.isConnected == false) {
+              return null;
+            } else {
+              return <InputToolbar {...props} />;
+            }
+          }}
         />
         {/* If the device OS is Android, adjust height when the keyboard pops up */}
         {Platform.OS === "android" ? (
@@ -213,11 +263,11 @@ const styles = StyleSheet.create({
   chatBackground: {
     flex: 1,
   },
-  //   userName: {
-  //   fontSize: 10,
-  //   color: "#fff",
-  //   alignSelf: "center",
-  //   opacity: 0.5,
-  //   marginTop: 25
-  // }
+  userName: {
+    fontSize: 10,
+    color: "#fff",
+    alignSelf: "center",
+    opacity: 0.5,
+    marginTop: 25,
+  },
 });
