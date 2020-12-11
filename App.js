@@ -2,17 +2,27 @@
 import React, { Component } from "react";
 // Import the screens we want to navigate
 import Chat from "./components/Chat";
+import Start from "./components/Start";
 // Import React Native Gesture Handler
 import "react-native-gesture-handler";
 // Import React Navigation
 import { createAppContainer } from "@react-navigation/native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import Start from "./components/Start";
+//import CustomActions from './CustomActions';
 
+const firebase = require('firebase');
+require('firebase/firestore');
+
+// Create Navigator
 const Stack = createStackNavigator();
 
 export default class App extends Component {
+
+  // renderCustomActions = (props) => {
+  //   return <CustomActions {...props} />;
+  // };
+
   render() {
     return (
       <NavigationContainer>

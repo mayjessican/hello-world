@@ -5,6 +5,9 @@ import { View, StyleSheet, Platform, KeyboardAvoidingView } from "react-native";
 import { GiftedChat, Bubble, InputToolbar } from "react-native-gifted-chat";
 import NetInfo from "@react-native-community/netinfo";
 import AsyncStorage from "@react-native-community/async-storage";
+import CustomActions from "./CustomActions";
+import MapView from "react-native-maps";
+
 // Import Firebase/Firestore
 const firebase = require("firebase");
 require("firebase/firestore");
@@ -37,6 +40,7 @@ export default class Chat extends Component {
         avatar: "",
       },
       uid: 0,
+      isConnected: false,
     };
   }
 
@@ -145,9 +149,6 @@ export default class Chat extends Component {
     this.unsubscribe();
   }
 
-  // Disbales InputToolbar if user is offline, where do you want to render this? I'm not sure exactly where. Where the input should
-  
-
   // Function to send a message
   onSend(messages = []) {
     // previousState refers to the component's state at the time the change is applied
@@ -157,7 +158,7 @@ export default class Chat extends Component {
         messages: GiftedChat.append(previousState.messages, messages),
       }),
       () => {
-        //this.addMessage();
+        this.addMessage();
         this.saveMessages();
       }
     );
@@ -179,6 +180,8 @@ export default class Chat extends Component {
           // use toDate() to convert firebase time format to JS date for consistency
           createdAt: data.createdAt.toDate(),
           user: data.user,
+          image: data.image || "",
+          location: data.location || "",
         });
       }
     });
@@ -187,11 +190,14 @@ export default class Chat extends Component {
     const messages = [...this.state.systemMessages, ...messagesFromFirebase];
 
     // Sorts by descending date to make sure messages are in order
-    this.setState({
-      messages: messages.sort((a, b) => b.createdAt - a.createdAt),
-    }, () => {
-      this.saveMessages();
-    });
+    this.setState(
+      {
+        messages: messages.sort((a, b) => b.createdAt - a.createdAt),
+      },
+      () => {
+        this.saveMessages();
+      }
+    );
   };
 
   //Pushes messages to Firestore database
@@ -203,7 +209,8 @@ export default class Chat extends Component {
       createdAt: message.createdAt,
       user: message.user,
       uid: this.state.uid,
-      sent: true,
+      image: message.image || "",
+      location: message.location || "",
     });
   };
 
@@ -224,6 +231,29 @@ export default class Chat extends Component {
     );
   }
 
+  // Rendering the '+' button
+  renderCustomActions = (props) => {
+    return <CustomActions {...props} />;
+  };
+
+  renderCustomView(props) {
+    const { currentMessage } = props;
+    if (currentMessage.location) {
+      return (
+        <MapView
+          style={{ width: 150, height: 100, borderRadius: 13, margin: 3 }}
+          region={{
+            latitude: currentMessage.location.latitude,
+            longitude: currentMessage.location.longitude,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }}
+        />
+      );
+    }
+    return null;
+  }
+
   render() {
     // Define variables from StartScreen
     let { userName, backgroundColor } = this.props.route.params;
@@ -238,12 +268,20 @@ export default class Chat extends Component {
       <View
         style={[styles.chatBackground, { backgroundColor: backgroundColor }]}
       >
+        {this.state.image && (
+          <Image
+            source={{ uri: this.state.image.uri }}
+            style={{ width: 200, height: 200 }}
+          />
+        )}
         <GiftedChat
           renderBubble={this.renderBubble.bind(this)}
           messages={this.state.messages}
           onSend={(messages) => this.onSend(messages)}
           user={this.state.user}
-          renderInputToolbar = {(props) => {
+          renderActions={this.renderCustomActions}
+          renderCustomView={this.renderCustomView}
+          renderInputToolbar={(props) => {
             if (this.state.isConnected == false) {
               return null;
             } else {
