@@ -268,12 +268,6 @@ export default class Chat extends Component {
       <View
         style={[styles.chatBackground, { backgroundColor: backgroundColor }]}
       >
-        {this.state.image && (
-          <Image
-            source={{ uri: this.state.image.uri }}
-            style={{ width: 200, height: 200 }}
-          />
-        )}
         <GiftedChat
           renderBubble={this.renderBubble.bind(this)}
           messages={this.state.messages}

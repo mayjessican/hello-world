@@ -4,11 +4,8 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import * as Permissions from "expo-permissions";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
-import MapView from "react-native-maps";
 import firebase from "firebase";
-// Storage for images
-// const firebase = require("firebase");
-// require("firebase/firestore");
+
 
 export default class CustomActions extends Component {
   constructor() {
@@ -57,14 +54,12 @@ export default class CustomActions extends Component {
       let result = await Location.getCurrentPositionAsync({}).catch((error) =>
         console.log(error)
       );
-      //const longitude = JSON.stringify(result.coords.longitude);
-      //const latitude = JSON.stringify(result.coords.latitude);
       if (!result.cancelled) {
         const location = await Location.getCurrentPositionAsync({});
         this.props.onSend({
           location: {
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
+            latitude: result.coords.latitude,
+            longitude: result.coords.longitude,
           },
         });
       }
