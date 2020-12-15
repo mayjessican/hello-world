@@ -45,7 +45,7 @@ export default class Chat extends Component {
   }
 
   // Gets messages from asyncStorage
-  async getMessages() {
+  getMessages = async () => {
     let messages = "";
     try {
       messages = (await AsyncStorage.getItem("messages")) || [];
@@ -55,10 +55,10 @@ export default class Chat extends Component {
     } catch (error) {
       console.log(error.message);
     }
-  }
+  };
 
   // Saves messages from asyncStorage
-  async saveMessages() {
+  saveMessages = async () => {
     try {
       await AsyncStorage.setItem(
         "messages",
@@ -67,10 +67,10 @@ export default class Chat extends Component {
     } catch (error) {
       console.log(error.message);
     }
-  }
+  };
 
   // Deletes messages from asyncStorage
-  async deleteMessages() {
+  deleteMessages = async () => {
     try {
       await AsyncStorage.removeItem("messages");
       this.setState({
@@ -79,7 +79,7 @@ export default class Chat extends Component {
     } catch (error) {
       console.log(error.message);
     }
-  }
+  };
 
   componentDidMount() {
     const { userName } = this.props.route.params;
@@ -102,7 +102,6 @@ export default class Chat extends Component {
               user: {
                 _id: user.uid,
                 name: this.props.route.params.userName,
-                loggedInText: "Hello there",
               },
               systemMessages: [
                 {

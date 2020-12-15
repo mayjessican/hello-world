@@ -6,7 +6,6 @@ import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import firebase from "firebase";
 
-
 export default class CustomActions extends Component {
   constructor() {
     super();
@@ -14,16 +13,20 @@ export default class CustomActions extends Component {
   // For choosing a picture from the device's library (camera roll)
   pickImage = async () => {
     const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
-    // Only grant access if user accepts
-    if (status === "granted") {
-      let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: "Images",
-      }).catch((error) => console.log(error));
+    try {
+      // Only grant access if user accepts
+      if (status === "granted") {
+        let result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: "Images",
+        }).catch((error) => console.log(error));
 
-      if (!result.cancelled) {
-        const imageUrl = await this.uploadImage(result.uri);
-        this.props.onSend({ image: imageUrl });
+        if (!result.cancelled) {
+          const imageUrl = await this.uploadImage(result.uri);
+          this.props.onSend({ image: imageUrl });
+        }
       }
+    } catch (error) {
+      console.log(error.message);
     }
   };
 
@@ -33,36 +36,44 @@ export default class CustomActions extends Component {
       Permissions.CAMERA,
       Permissions.CAMERA_ROLL
     );
-    // Only access if user grants permission
-    if (status === "granted") {
-      let result = await ImagePicker.launchCameraAsync({
-        mediaTypes: "Images",
-      }).catch((error) => console.log(error));
+    try {
+      // Only access if user grants permission
+      if (status === "granted") {
+        let result = await ImagePicker.launchCameraAsync({
+          mediaTypes: "Images",
+        }).catch((error) => console.log(error));
 
-      if (!result.cancelled) {
-        const imageUrl = await this.uploadImage(result.uri);
-        this.props.onSend({ image: imageUrl });
+        if (!result.cancelled) {
+          const imageUrl = await this.uploadImage(result.uri);
+          this.props.onSend({ image: imageUrl });
+        }
       }
+    } catch (error) {
+      console.log(error.message);
     }
   };
 
   // For accessing the user's location data
   getLocation = async () => {
     const { status } = await Permissions.askAsync(Permissions.LOCATION);
-    // Only access location if user allows
-    if (status === "granted") {
-      let result = await Location.getCurrentPositionAsync({}).catch((error) =>
-        console.log(error)
-      );
-      if (!result.cancelled) {
-        const location = await Location.getCurrentPositionAsync({});
-        this.props.onSend({
-          location: {
-            latitude: result.coords.latitude,
-            longitude: result.coords.longitude,
-          },
-        });
+    try {
+      // Only access location if user allows
+      if (status === "granted") {
+        let result = await Location.getCurrentPositionAsync({}).catch((error) =>
+          console.log(error)
+        );
+        if (!result.cancelled) {
+          const location = await Location.getCurrentPositionAsync({});
+          this.props.onSend({
+            location: {
+              latitude: result.coords.latitude,
+              longitude: result.coords.longitude,
+            },
+          });
+        }
       }
+    } catch (error) {
+      console.log(error.message);
     }
   };
 
