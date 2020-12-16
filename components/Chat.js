@@ -53,7 +53,7 @@ export default class Chat extends Component {
         messages: JSON.parse(messages),
       });
     } catch (error) {
-      console.log(error.message);
+      console.error(error);
     }
   };
 
@@ -65,7 +65,7 @@ export default class Chat extends Component {
         JSON.stringify(this.state.messages)
       );
     } catch (error) {
-      console.log(error.message);
+      console.error(error);
     }
   };
 
@@ -77,14 +77,14 @@ export default class Chat extends Component {
         messages: [],
       });
     } catch (error) {
-      console.log(error.message);
+      console.error(error);
     }
   };
 
   componentDidMount() {
     const { userName } = this.props.route.params;
     // Use NetInfo to check is user is on or offline
-    NetInfo.fetch().then((state) => {
+    NetInfo.fetch().then((state = this.state) => {
       if (state.isConnected) {
         // Authorisation using Firebase
         this.authUnsubscribe = firebase
@@ -94,7 +94,7 @@ export default class Chat extends Component {
               try {
                 await firebase.auth().signInAnonymously();
               } catch (error) {
-                console.log("Unable to sign in: " + error.message);
+                console.log(`Unable to sign in: ${error.message}`);
               }
             }
             this.setState({
@@ -117,7 +117,7 @@ export default class Chat extends Component {
                 {
                   _id: 2,
                   text:
-                    this.props.route.params.userName + " has entered the chat.",
+                  `${this.props.route.params.userName} has entered the chat`,
                   createdAt: new Date(),
                   system: true,
                 },
@@ -164,11 +164,11 @@ export default class Chat extends Component {
   }
 
   // Updates messages in state
-  onCollectionUpdate = (querySnapshot) => {
+  onCollectionUpdate = (querySnapshot = []) => {
     // when messages from firebase come, they override message we set from the beginning
     const messagesFromFirebase = [];
     // Go through each document
-    querySnapshot.forEach((doc) => {
+    querySnapshot.forEach((doc = []) => {
       // Get the QueryDocumentSnapshot's data
       const data = doc.data();
       if (data._id) {

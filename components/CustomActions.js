@@ -26,7 +26,7 @@ export default class CustomActions extends Component {
         }
       }
     } catch (error) {
-      console.log(error.message);
+      console.error(error);
     }
   };
 
@@ -49,7 +49,7 @@ export default class CustomActions extends Component {
         }
       }
     } catch (error) {
-      console.log(error.message);
+      console.error(error);
     }
   };
 
@@ -73,12 +73,12 @@ export default class CustomActions extends Component {
         }
       }
     } catch (error) {
-      console.log(error.message);
+      console.error(error);
     }
   };
 
   // Uploads image as blob
-  uploadImage = async (uri) => {
+  uploadImage = async (uri = '') => {
     const blob = await new Promise((resolve, reject) => {
       // New XMLHttpRequest
       const xhr = new XMLHttpRequest();

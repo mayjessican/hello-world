@@ -23,9 +23,6 @@ export default class Start extends React.Component {
   constructor() {
     super();
 
-    // constructor(props) {
-    //   super(props);
-
     // Initialise the state of the app
     this.state = {
       userName: "",
