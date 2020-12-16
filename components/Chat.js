@@ -84,7 +84,7 @@ export default class Chat extends Component {
   componentDidMount() {
     const { userName } = this.props.route.params;
     // Use NetInfo to check is user is on or offline
-    NetInfo.fetch().then((state = this.state) => {
+    NetInfo.fetch().then((state = {}) => {
       if (state.isConnected) {
         // Authorisation using Firebase
         this.authUnsubscribe = firebase
@@ -168,7 +168,7 @@ export default class Chat extends Component {
     // when messages from firebase come, they override message we set from the beginning
     const messagesFromFirebase = [];
     // Go through each document
-    querySnapshot.forEach((doc = []) => {
+    querySnapshot.forEach((doc = {}) => {
       // Get the QueryDocumentSnapshot's data
       const data = doc.data();
       if (data._id) {
