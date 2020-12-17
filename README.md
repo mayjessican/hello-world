@@ -1,6 +1,6 @@
 # Hello World!
 
-![homePage](/images/welcomePage.png =50x)
+![homePage](/images/welcomePage.png){ width = 30% }
 
 ![chatRoom](/images/chatroom.png =50x)
 
