@@ -1,8 +1,8 @@
 # Hello World!
 
-![homePage](/images/welcomePage.png = 30%)
+![homePage](/images/welcomePage.png =50x)
 
-![chatRoom](/images/chatroom.png = 30%)
+![chatRoom](/images/chatroom.png =50x)
 
 ## About:
 This is a React Native Mobile application. Where the user can log in and send the following types of messages: text, location, image from library, or a new photo.
